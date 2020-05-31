@@ -25,54 +25,49 @@ namespace Arm3Dof{
         profile3
     };
     template<RouteMethod user_method, RouteProfile user_profile>
-    class RouteRobotArm{
-        public:
-            //コンストラクタ
-            RouteRobotArm(arm_tuple _pos_start, arm_tuple _pos_end):pos_start(_pos_start), pos_end(_pos_end)const{
-                generateRoute();
-            }
-            void generateRoute(){
-            }
-            arm_tuple operator()(double time){
-                //実際の軌道の計算
-                //逐一データを渡してあげる
-                //タイマーで管理する
-                switch(user_method){
-                    //関節空間
-                    case method::method1:
-                        break;
-                    //作業空間
-                    case method::method2:
-                        break;
-                    default:
-                        break;
-                }
-                switch(user_profile){
-                    //LCPB
-                    case profile::profile1:
-                        break;
-                    //時間3次多項式
-                    case profile::profile2:
-                        break;
-                    //時間5次多項式
-                    case profile::profile3:
-                        break;
-                    default:
-                        break;
-                }
-            }
-        private:
-            constexpr arm_tuple pos_start;
-            constexpr arm_tuple pos_end;
-    };
     class RobotArm{
         public:
             //コンストラクタ
-            RobotArm(constexpr float _L1, constexpr float _L2) : L1(_L1), L2(_L2){
+            RobotArm(Vector3d _pos_start, Vector3d _pos_end, double time_total, constexpr float _L1, constexpr float _L2) : pos_start(_pos_start), pos_end(_pos_end), time_total(_time_total), L1(_L1), L2(_L2){
             }
-            arm_tuple operator()(arm_tuple pos_fingers){
+            Vector3d operator()(double time_now){
+                //実際の軌道の計算
+                //逐一データを渡してあげる
+                //タイマーで管理する
+                double param_s{};
+                Vector3d pos_fingers;
+                 switch(user_profile){
+                    //LCPB
+                    case profile::profile1:
+                    param_s = ;
+                        break;
+                    //時間3次多項式
+                    case profile::profile2:
+                    param_s = ;
+                        break;
+                    //時間5次多項式
+                    case profile::profile3:
+                    param_s = ;
+                        break;
+                    default:
+                    param_s = time_now / time_total;
+                        break;
+                }
+                switch(user_method){
+                    //関節空間
+                    case method::method1:
+                        pos_fingers=  pos_start * (1 - param_s) + pos_end * s;
+                        break;
+                    //作業空間
+                    case method::method2:
+                        pos_fingers = pos_start * (1 - param_s) + pos_end * s;
+                        break;
+                    default:
+                        pos_fingers = pos_start * (1 - param_s) + pos_end * s;
+                        break;
+                }
                 //逆運動学の計算
-                arm_tuple calc;
+                Vector3d calc;
                 std::array<float> theta[3]{};
                 sqrt_x2y2 = std::sqrt(std::get<0>(pos_fingers) * std::get<0>(pos_fingers) + std::get<1>(pos_fingers) * std::get<1>(pos_fingers))
                 theta[2] = acos((std::pow(std::get<0>(pos_fingers), 2) + std::pow(std::get<1>(pos_fingers), 2) + std::pow(std::get<2>(pos_fingers), 2)) - L1 * L1 - L2 * L2) / (2 * L1 * _L2)
@@ -84,6 +79,9 @@ namespace Arm3Dof{
         private:
             constexpr float L1;
             constexpr float L2;
+            constexpr Vector3d pos_start;
+            constexpr Vector3d pos_end;
+            constexpr time_total;
     };
 }
 #endif
