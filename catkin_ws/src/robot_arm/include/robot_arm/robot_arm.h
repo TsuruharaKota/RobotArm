@@ -13,14 +13,16 @@ namespace Arm3Dof{
     enum class RouteMethod{
         //作業空間
         method1,
-        //間接空間
+        //関節空間
         method2
     };
     enum class RouteProfile{
-        //速度台形
+        //LCPB
         profile1,
-        //時間多項式
+        //時間3次多項式
         profile2
+        //時間5次多項式
+        profile3
     };
     template<RouteMethod user_method, RouteProfile user_profile>
     class RouteRobotArm{
@@ -30,27 +32,34 @@ namespace Arm3Dof{
                 generateRoute();
             }
             void generateRoute(){
+            }
+            arm_tuple operator()(double time){
+                //実際の軌道の計算
+                //逐一データを渡してあげる
+                //タイマーで管理する
                 switch(user_method){
+                    //関節空間
                     case method::method1:
                         break;
+                    //作業空間
                     case method::method2:
                         break;
                     default:
                         break;
                 }
                 switch(user_profile){
+                    //LCPB
                     case profile::profile1:
                         break;
+                    //時間3次多項式
                     case profile::profile2:
+                        break;
+                    //時間5次多項式
+                    case profile::profile3:
                         break;
                     default:
                         break;
                 }
-            }
-            arm_tuple operator()(){
-                //実際の軌道の計算
-                //逐一データを渡してあげる
-                //タイマーで管理する
             }
         private:
             constexpr arm_tuple pos_start;
