@@ -12,17 +12,17 @@ using arm_tuple = std::tuple<float, float, float>
 namespace Arm3Dof{
     enum class RouteMethod{
         //作業空間
-        method1,
+        working_space,
         //関節空間
-        method2
+        joint_space
     };
     enum class RouteProfile{
         //LCPB
-        profile1,
+        lcpb,
         //時間3次多項式
-        profile2
+        cubic_polynomial,
         //時間5次多項式
-        profile3
+        quintic_polynomial
     };
     template<RouteMethod user_method, RouteProfile user_profile>
     class RobotArm{
@@ -36,36 +36,57 @@ namespace Arm3Dof{
                 //タイマーで管理する
                 double param_s{};
                 Vector3d pos_fingers;
+                double param_tt = time_now / time_total;
                  switch(user_profile){
                     //LCPB
-                    case profile::profile1:
-                    param_s = ;
+                    case profile::lcpb:
+                        double param_vel_max = 10;
+                        double tb = time_total - 1 / param_vel_max;
+                        double param_accel = (param_vel_max * param_vel_max) / (param_vel_max * time_total - 1);
+                        if(time_now < tb){
+                            param_s = param_accel * time_now * time_now / 2; 
+                        }else if(time_now < time_total - tb){
+                            param_s = param_vel_max * (time_now - tb / 2);
+                        }else{
+                            param_s = 1 - a * (time_total - time_now) * (time_total - time_now) / 2;
+                        }
                         break;
                     //時間3次多項式
-                    case profile::profile2:
-                    param_s = ;
+                    case profile::cubic_polynomial:
+                        param_s = -2 * param_tt * param_tt * param_tt + 3 * param_tt * param_tt;
                         break;
                     //時間5次多項式
-                    case profile::profile3:
-                    param_s = ;
+                    case profile::quintic_polynomial:
+                        param_s = 6 * std::pow(param_tt, 5) - 15 * std::pow(param_tt, 4) + 10 * std::pow(param_tt, 3);
                         break;
                     default:
-                    param_s = time_now / time_total;
+                        param_s = param_tt;
                         break;
                 }
                 switch(user_method){
                     //関節空間
-                    case method::method1:
-                        pos_fingers=  pos_start * (1 - param_s) + pos_end * s;
+                    case method::joint_space:
+                        Vector3d theta_start = invKinema(pos_start);
+                        Vector3d thtea_end = invKinema(pos_end);
+                        pos_fingers =  theta_start * (1 - param_s) + thtea_end * s;
                         break;
                     //作業空間
-                    case method::method2:
+                    case method::working_space:
                         pos_fingers = pos_start * (1 - param_s) + pos_end * s;
                         break;
                     default:
                         pos_fingers = pos_start * (1 - param_s) + pos_end * s;
                         break;
                 }
+                return ;
+            }
+            Vector3d directKinema(Vector3d pos){
+                double x = cos(pos(0)) * (-L1 * sin(pos(1) - L2 * sin(pos(1) + pos(2))));
+                double y = sin(pos(0)) * (-L1 * sin(pos(1) - L2 * sin(pos(1) + pos(2))));
+                double z = L1 * cos(pos(1)) + L2 * cos(pos(1) + pos(2));
+                return Vector3d(x, y, z);
+            }
+            Vector3d invKinema(Vector3d pos){
                 //逆運動学の計算
                 Vector3d calc;
                 std::array<float> theta[3]{};
