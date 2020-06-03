@@ -12,9 +12,9 @@ int main(int argc, char **argv){
     double L2 = 100;
     double time_total = 10;
     //スタート位置
-    Vector3d pos_start(0, 0, 0);
+    Vector3d pos_start(141.42, 0, 0);
     //移動後の目標座標
-    Vector3d pos_end(100, 100, 100); 
+    Vector3d pos_end(0, 141.42, 0); 
     ros::init(argc, argv, "robot_arm");
     ros::NodeHandle n;
     ros::Rate loop_rate(400);
@@ -27,10 +27,10 @@ int main(int argc, char **argv){
         auto timer_now = std::chrono::system_clock::now();
         //経過時間をミリ秒で取得
         double time_elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(timer_now - timer_start).count();
-
+        time_elapsed /= 1000;
         //間接角を取得
         Vector3d pos_current = robotModel(time_elapsed);
-        std::cout << pos_current << std::endl;
+        std::cout << pos_current * (180.0 / M_PI)<< std::endl;
         ros::spinOnce();
         loop_rate.sleep();
     }
