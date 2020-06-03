@@ -11,6 +11,7 @@ using namespace Eigen;
 using route_tuple_ini = std::tuple<std::tuple<double, double, double>, std::tuple<double, double, double>>;
 using arm_tuple = std::tuple<double, double, double>;
 
+namespace Arm3Dof{
     enum class RouteMethod{
         //作業空間
         working_space,
@@ -41,37 +42,29 @@ using arm_tuple = std::tuple<double, double, double>;
                  switch(user_profile){
                     //LCPB
                     case RouteProfile::lcpb:{
-                        double param_vel_max = 1.0 / 8.0;
+                        constexpr double param_vel_max = 1.0 / 8.0;
+                        //init関数を作ってtb, param_accelをパラメータ化すればconstexpr化出来る
                         double tb = time_total - (1.0 / param_vel_max);
                         double param_accel = (param_vel_max * param_vel_max) / (param_vel_max * time_total - 1);
-                        std::cout << "tb " << tb << std::endl;
-                        std::cout << "time_now " << time_now << std::endl;
                         if(time_now < tb){
                             param_s = param_accel * time_now * time_now / 2; 
-                            std::cout << "fase1 " << param_s << std::endl;
                         }else if(time_now < time_total - tb){
                             param_s = param_vel_max * (time_now - tb / 2);
-                            std::cout << "fase2 " << param_s << std::endl;
                         }else if(time_now < time_total){
                             param_s = 1 - param_accel * (time_total - time_now) * (time_total - time_now) / 2;
-                            std::cout << "fase3 " << param_s << std::endl;
                         }else{
                             param_s = 1.0;
-                            std::cout << "fase4" << std::endl;
                         }
-                        std::cout << "lcpb" << std::endl;
                         break;
                     }
                     //時間3次多項式
                     case RouteProfile::cubic_polynomial:{
                         param_s = -2 * param_tt * param_tt * param_tt + 3 * param_tt * param_tt;
-                        std::cout << "cubic_polynominal" << std::endl;
                         break;
                     }
                     //時間5次多項式
                     case RouteProfile::quintic_polynomial:{
                         param_s = 6 * std::pow(param_tt, 5) - 15 * std::pow(param_tt, 4) + 10 * std::pow(param_tt, 3);
-                        std::cout << "quintic_polynomial" << std::endl;
                         break;
                     }
                     default:{
@@ -83,21 +76,14 @@ using arm_tuple = std::tuple<double, double, double>;
                     //関節空間
                     case RouteMethod::joint_space:{
                         Vector3d a(0, -45, -90);
-                        std::cout << "directKinema" << std::endl;
-                        std::cout << directKinema(a * M_PI / 180) << std::endl;
-                        std::cout << "---------------" << std::endl;
                         Vector3d theta_start = invKinema(pos_start);
                         Vector3d thtea_end = invKinema(pos_end);
-                        std::cout << "start" << std::endl;
-                        std::cout << theta_start * 180 / M_PI << std::endl;
                         pos_fingers =  theta_start * (1 - param_s) + thtea_end * param_s;
-                        std::cout << "joint_space" << std::endl;
                         break;
                     }
                     //作業空間
                     case RouteMethod::working_space:{
                         pos_fingers = pos_start * (1 - param_s) + pos_end * param_s;
-                        std::cout << "working_space" << std::endl;
                         break;
                     }
                     default:{
@@ -123,7 +109,7 @@ using arm_tuple = std::tuple<double, double, double>;
                 theta[1] = atan2((-1 * (L1 + L2 * cos(theta[2])) * sqrt_x2y2) - (L2 * sin(theta[2]) * pos(2)), -1 * (L2 * sin(theta[2])
                                     * sqrt_x2y2) + ((L1 + (L2 * cos(theta[2]))) * pos(2)));
                 Vector3d calc(theta[0], theta[1], theta[2]);
-                return calc;
+                return std::move(calc);
             }
         private:
             double L1;
@@ -132,4 +118,5 @@ using arm_tuple = std::tuple<double, double, double>;
             Vector3d pos_start;
             Vector3d pos_end;
     };
+}
 #endif
